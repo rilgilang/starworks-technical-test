@@ -56,12 +56,6 @@ app.use(
   })
 );
 
-/* Enable req.body and req.files (form-data) */
-app.use(fileUpload());
-
-/* Make public folder as static */
-app.use(express.static("public"));
-
 /* Use routes */
 app.get("/", async (req, res, next) => {
   try {
@@ -85,7 +79,7 @@ app.all("*", (req, res, next) => {
 
 /* Running server */
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
