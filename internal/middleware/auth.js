@@ -47,6 +47,7 @@ class Authenticator {
         expiresIn: process.env.JWT_EXPIRE,
       });
 
+      req.user = user;
       req.token = token;
       next();
     })(req, res, next);

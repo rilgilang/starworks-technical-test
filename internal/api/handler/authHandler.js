@@ -7,9 +7,23 @@ class AuthHandler {
 
   loginHandler = async (req, res) => {
     try {
-      return res
-        .status(200)
-        .json({ code: 200, data: req.token, message: "success" });
+      return res.status(200).json({
+        code: 200,
+        data: {
+          id: req.user.id,
+          username: req.user.username,
+          email: req.user.email,
+          first_name: req.user.first_name,
+          last_name: req.user.last_name,
+          dob: req.user.dob,
+          city: req.user.city,
+          street_address: req.user.street_address,
+          province: req.user.province,
+          telephone_number: req.user.telephone_number,
+          token: req.token,
+        },
+        message: "success",
+      });
     } catch (error) {
       return res
         .status(500)
