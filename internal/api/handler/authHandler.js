@@ -16,6 +16,7 @@ class AuthHandler {
         .json({ code: 500, error: error, message: "internal server error" });
     }
   };
+
   registerHandler = async (req, res) => {
     try {
       const errorMessages = [];
@@ -133,7 +134,6 @@ class AuthHandler {
         message: result.message,
       });
     } catch (error) {
-      console.log("error -->", error);
       return res.status(500).json({
         code: 500,
         error: error,

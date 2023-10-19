@@ -38,6 +38,15 @@ class UserRepository {
 
     return data;
   };
+
+  destroyAll = async () => {
+    const result = await user.destroy({
+      where: {},
+      truncate: true,
+    });
+
+    return result;
+  };
 }
 
 module.exports = UserRepository;

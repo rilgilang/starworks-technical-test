@@ -6,7 +6,6 @@ const xss = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const hpp = require("hpp");
 const helmet = require("helmet");
-const morgan = require("morgan");
 const router = require("./internal/api/router/router");
 
 const app = express(); // Make express app
@@ -32,21 +31,6 @@ app.use(
   })
 );
 
-if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
-  app.use(morgan("dev"));
-} else {
-  // create a write stream (in append mode)
-  let accessLogStream = fs.createWriteStream(
-    path.join(__dirname, "access.log"),
-    {
-      flags: "a",
-    }
-  );
-
-  // setup the logger
-  app.use(morgan("combined", { stream: accessLogStream }));
-}
-
 /* Enable req.body */
 app.use(express.json()); // Enable req.body JSON
 // Enable url-encoded
@@ -58,11 +42,7 @@ app.use(
 
 /* Use routes */
 app.get("/", async (req, res, next) => {
-  try {
-    res.status(200).json("woow");
-  } catch (error) {
-    next(error);
-  }
+  res.status(200).json("woow");
 });
 
 /* Use the routes */
@@ -70,14 +50,8 @@ app.use("/api/v1", router);
 
 /* If routes not found */
 app.all("*", (req, res, next) => {
-  try {
-    next({ message: "Endpoint not Found", statusCode: 404 });
-  } catch (error) {
-    next(error);
-  }
+  res.status(404).json("wtf are u doing bruh!!");
 });
-
-/* Running server */
 
 const PORT = process.env.PORT || 4000;
 if (process.env.NODE_ENV !== "test") {

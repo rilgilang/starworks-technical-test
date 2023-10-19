@@ -30,32 +30,26 @@ class Authenticator {
       return res.status(400).json({ message: errorMessages });
     }
 
-    passport.authenticate(
-      "signin",
-      { session: false },
-      async (err, user, info) => {
-        if (err) {
-          return res
-            .status(401)
-            .json({ code: 401, error: err.message, message: "unauthorize" });
-        }
-        if (!user) {
-          return res
-            .status(401)
-            .json({ code: 401, error: info.message, message: "unauthorize" });
-        }
-
-        const jwt = require("jsonwebtoken");
-        const identity = { user: user.id };
-
-        const token = await jwt.sign(identity, process.env.JWT_SECRET, {
-          expiresIn: process.env.JWT_EXPIRE,
-        });
-
-        req.token = token;
-        next();
+    passport.authenticate("signin", { session: false }, async (err, user) => {
+      if (err == "user not found") {
+        return res
+          .status(401)
+          .json({ code: 401, error: err.message, message: "unauthorize" });
       }
-    )(req, res, next);
+      if (err == "password wrong") {
+        return res.status(401).json({ code: 401, message: "unauthorize" });
+      }
+
+      const jwt = require("jsonwebtoken");
+      const identity = { user: user.id };
+
+      const token = await jwt.sign(identity, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRE,
+      });
+
+      req.token = token;
+      next();
+    })(req, res, next);
   };
 
   user = (req, res, next) => {
@@ -89,15 +83,18 @@ passport.use(
       try {
         const data = await userRepo.findOneByUsernameOrEmail(username);
         if (!data) {
-          return done(null, false, { message: "username or password wrong" });
+          return done("user not found", false, {
+            message: "username or password wrong",
+          });
         }
+
         const validate = await bcrypt.compare(password, data.password);
         if (!validate) {
-          return done(null, false, { message: "username or password wrong" });
+          return done("password wrong", false);
         }
         return done(null, data, { message: "Login success!" });
       } catch (e) {
-        return done(e, false, { message: "User can't be created" });
+        return done("user cant login!", false);
       }
     }
   )

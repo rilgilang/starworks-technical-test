@@ -3,6 +3,16 @@ class AuthService {
     this.userRepo = userRepo;
   }
   register = async (payload) => {
+    const checkUserByEmail = await this.userRepo.findOneByEmail(payload.email);
+
+    if (checkUserByEmail) {
+      return {
+        code: 400,
+        error: "email already registered!",
+        message: "bad request",
+      };
+    }
+
     const checkUserByUsername = await this.userRepo.findOneByUsername(
       payload.username
     );
@@ -15,27 +25,9 @@ class AuthService {
       };
     }
 
-    const checkUserByEmail = await this.userRepo.findOneByEmail(payload.email);
-
-    if (checkUserByEmail) {
-      return {
-        code: 400,
-        error: "email already registered!",
-        message: "bad request",
-      };
-    }
-
     await this.userRepo.createNewUser(payload);
 
     const newUser = await this.userRepo.findOneByUsername(payload.username);
-
-    if (!newUser) {
-      return {
-        code: 400,
-        error: "user not found!",
-        message: "bad request",
-      };
-    }
 
     return { message: "success", data: newUser, code: 201 };
   };

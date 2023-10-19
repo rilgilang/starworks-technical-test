@@ -32,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      paranoid: true, // enable soft delete (deletedAt)
       timestamps: true, // enable createdAt and updatedAt
       modelName: "user",
     }
