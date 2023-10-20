@@ -20,6 +20,24 @@ class WalletRepository {
 
     return data;
   };
+
+  topUpWallet = async (amount, walletAddress) => {
+    const data = await wallet.update(
+      { balance: amount },
+      { where: { wallet_address: walletAddress } }
+    );
+
+    return data;
+  };
+
+  destroyAll = async () => {
+    const result = await wallet.destroy({
+      where: {},
+      truncate: true,
+    });
+
+    return result;
+  };
 }
 
 module.exports = WalletRepository;

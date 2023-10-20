@@ -23,6 +23,16 @@ class UserRepository {
     return data;
   };
 
+  findOneById = async (id) => {
+    const data = await user.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    return data;
+  };
+
   findOneByEmail = async (email) => {
     const data = await user.findOne({
       where: {
@@ -35,7 +45,6 @@ class UserRepository {
 
   createNewUser = async (payload) => {
     const data = await user.create(payload);
-
     return data;
   };
 

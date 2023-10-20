@@ -1,13 +1,10 @@
 const request = require("supertest");
 const app = require("../app");
-const UserRepository = require("../internal/repositories/userRepository");
-
-const userRepo = new UserRepository();
 
 const userUrl = "/api/v1";
 
 beforeAll(async () => {
-  await userRepo.destroyAll();
+  await new Promise((r) => setTimeout(r, 1500));
 });
 
 //Register

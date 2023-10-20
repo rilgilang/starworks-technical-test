@@ -40,7 +40,6 @@ class Authenticator {
         return res.status(401).json({ code: 401, message: "unauthorize" });
       }
 
-      console.log("error --> ", err);
       const jwt = require("jsonwebtoken");
       const identity = { user: user.id };
 
@@ -113,7 +112,7 @@ passport.use(
         const data = await userRepo.findOneById(token.user);
 
         if (data) {
-          return done(null, token);
+          return done(null, data);
         }
 
         return done(null, false, { message: "access denied" });
