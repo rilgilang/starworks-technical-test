@@ -180,14 +180,14 @@ describe("Registering", () => {
       .post(userUrl + "/register")
       .send({
         email: "addresslengthnotvalid@gmail.com",
-        first_name: "addresslengthnotvalid",
-        last_name: "addresslengthnotvalid",
+        first_name: "addressisnotvalid",
+        last_name: "addressisnotvalid",
         dob: "1999-05-22",
-        city: "a",
-        street_address: "d",
-        province: "addresslengthnotvalid",
-        telephone_number: "addresslengthnotvalid",
-        username: "a",
+        city: "addressisnotvalid",
+        street_address: "a",
+        province: "addressisnotvalid",
+        telephone_number: "6289688262345",
+        username: "addressisnotvalid",
         password: "max20validator",
       });
 
@@ -200,15 +200,15 @@ describe("Registering", () => {
       .post(userUrl + "/register")
       .send({
         email: "addresslengthnotvalid@gmail.com",
-        first_name: "addresslengthnotvalid",
-        last_name: "addresslengthnotvalid",
+        first_name: "addressisnotvalid",
+        last_name: "addressisnotvalid",
         dob: "1999-05-22",
-        city: "a",
+        city: "addressisnotvalid",
         street_address:
           "dTz7GyjYYZH4npJEBjQfYtXyRqCN6gXBErQy45IRbnbSrI67TtERrxdrSMP2",
-        province: "addresslengthnotvalid",
-        telephone_number: "addresslengthnotvalid",
-        username: "a",
+        province: "addressisnotvalid",
+        telephone_number: "6289688262345",
+        username: "addressisnotvalid",
         password: "max20validator",
       });
 
