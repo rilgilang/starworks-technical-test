@@ -5,6 +5,7 @@ class AuthService {
     this.userRepo = userRepo;
     this.walletRepo = walletRepo;
   }
+
   register = async (payload) => {
     const checkUserByEmail = await this.userRepo.findOneByEmail(payload.email);
 

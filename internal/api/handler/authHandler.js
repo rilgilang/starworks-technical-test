@@ -1,7 +1,7 @@
 const validator = require("validator");
 
 class AuthHandler {
-  constructor(authService) {
+  constructor(authService, redis) {
     this.authService = authService;
   }
 

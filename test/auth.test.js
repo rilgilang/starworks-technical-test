@@ -1,10 +1,45 @@
 const request = require("supertest");
 const app = require("../app");
+const { redisBootStrap } = require("../bootstrap/redis");
+const Redis = require("../internal/pkg/redis");
 
 const userUrl = "/api/v1";
+let expiredToken = "";
+const dummyUserAgent = "Jest-Testing";
+
+//******delete this after debugging******
+const redis = new Redis(redisBootStrap);
+let checkId = 0;
+//******delete this after debugging******
 
 beforeAll(async () => {
   await new Promise((r) => setTimeout(r, 1500));
+
+  await request(app)
+    .post(userUrl + "/register")
+    .send({
+      email: "oldtoken@gmail.com",
+      first_name: "oldtoken",
+      last_name: "oldtoken",
+      dob: "2000-01-01",
+      city: "ini oldtoken",
+      street_address: "jl. uwow oldtoken",
+      province: "oldtoken",
+      telephone_number: "6289688262345",
+      username: "oldtoken",
+      password: "oldtoken",
+    });
+
+  const res = await request(app)
+    .post(userUrl + "/login")
+    .set({ "User-Agent": dummyUserAgent })
+    .send({
+      username: "oldtoken",
+      password: "oldtoken",
+    });
+
+  //old token
+  expiredToken = res.body.data.token;
 });
 
 //Register
@@ -13,7 +48,7 @@ describe("Registering", () => {
     const res = await request(app)
       .post(userUrl + "/register")
       .send({
-        email: "unittestsuccess@gmail.com",
+        email: "registering@gmail.com",
         first_name: "first",
         last_name: "last",
         dob: "2000-01-01",
@@ -33,7 +68,7 @@ describe("Registering", () => {
     const res = await request(app)
       .post(userUrl + "/register")
       .send({
-        email: "unittestsuccess@gmail.com",
+        email: "registering@gmail.com",
         first_name: "first_email_duplicate",
         last_name: "last_email_duplicate",
         dob: "2000-01-01",
@@ -217,7 +252,7 @@ describe("Registering", () => {
     const res = await request(app)
       .post(userUrl + "/register")
       .send({
-        email: "unittestsuccess@gmail.com",
+        email: "registering@gmail.com",
         first_name: "first",
         last_name: "last",
         dob: "2000-01-01",
@@ -256,12 +291,16 @@ describe("Registering", () => {
 
 //Home routes
 describe("Login", () => {
+  //login account name "oldtoken" to the new session
   it("Login success", async () => {
+    //this will prevent jwt generate same token for expiredToken and token on this response
+    await new Promise((r) => setTimeout(r, 1000));
     const res = await request(app)
       .post(userUrl + "/login")
+      .set({ "User-Agent": dummyUserAgent })
       .send({
-        username: "username",
-        password: "password",
+        username: "oldtoken",
+        password: "oldtoken",
       });
 
     expect(res.statusCode).toEqual(200);
@@ -271,6 +310,7 @@ describe("Login", () => {
   it("Login failed user not found", async () => {
     const res = await request(app)
       .post(userUrl + "/login")
+      .set({ "User-Agent": dummyUserAgent })
       .send({
         username: "njir_aselole",
         password: "password",
@@ -283,6 +323,7 @@ describe("Login", () => {
   it("Login failed password or username empty", async () => {
     const res = await request(app)
       .post(userUrl + "/login")
+      .set({ "User-Agent": dummyUserAgent })
       .send({
         username: "",
         password: "",
@@ -295,12 +336,25 @@ describe("Login", () => {
   it("Login failed password is wrong", async () => {
     const res = await request(app)
       .post(userUrl + "/login")
+      .set({ "User-Agent": dummyUserAgent })
       .send({
         username: "username",
         password: "wrong password",
       });
 
     expect(res.statusCode).toEqual(401);
+    expect(res.body).toBeInstanceOf(Object);
+  });
+
+  it("validation old token forbidden when user logged in same device again", async () => {
+    const res = await request(app)
+      .get(userUrl + "/wallet")
+      .set({
+        Authorization: `Bearer ${expiredToken}`,
+        "User-Agent": dummyUserAgent,
+      });
+
+    expect(res.statusCode).toEqual(403);
     expect(res.body).toBeInstanceOf(Object);
   });
 });

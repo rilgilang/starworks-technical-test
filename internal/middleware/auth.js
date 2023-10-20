@@ -11,7 +11,9 @@ require("dotenv").config({
 });
 
 class Authenticator {
-  constructor() {}
+  constructor(redis) {
+    this.redis = redis;
+  }
   signin = async (req, res, next) => {
     const errorMessages = [];
     const validate = ["username", "password"];
@@ -39,13 +41,23 @@ class Authenticator {
       if (err == "password wrong") {
         return res.status(401).json({ code: 401, message: "unauthorize" });
       }
-
+      const userAgent = req.get("User-Agent");
       const jwt = require("jsonwebtoken");
       const identity = { user: user.id };
 
       const token = await jwt.sign(identity, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE,
       });
+
+      const userSession = await this.redis.get(
+        `session:${user.id}:${userAgent}`
+      );
+
+      if (userSession) {
+        await this.redis.delete(`session:${user.id}:${userAgent}`);
+      }
+
+      await this.redis.set(`session:${user.id}:${userAgent}`, token, 5 * 60);
 
       req.user = user;
       req.token = token;
@@ -54,13 +66,23 @@ class Authenticator {
   };
 
   user = (req, res, next) => {
-    passport.authorize("user", { session: false }, (err, user, info) => {
+    passport.authorize("user", { session: false }, async (err, user, info) => {
       if (err) {
         return res.status(403).json({ message: err.message, statusCode: 403 });
       }
       if (!user) {
         return res.status(403).json({ message: info.message, statusCode: 403 });
       }
+
+      const userAgent = req.get("User-Agent");
+      const userSession = await this.redis.get(
+        `session:${user.id}:${userAgent}`
+      );
+
+      if (userSession !== req.headers.authorization.split(" ")[1]) {
+        return res.status(403).json({ message: "forbidden", statusCode: 403 });
+      }
+
       req.user = user;
       next();
     })(req, res, next);

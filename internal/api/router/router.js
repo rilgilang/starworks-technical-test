@@ -4,14 +4,16 @@ const router = express.Router();
 const AuthHandler = require("../handler/authHandler");
 const AuthService = require("../../service/authService");
 const UserRepository = require("../../repositories/userRepository");
-const { signin } = require("../../middleware/auth");
 const Authenticator = require("../../middleware/auth");
 const WalletRepository = require("../../repositories/walletRepository");
 const WalletHandler = require("../handler/walletHandler");
 const WalletService = require("../../service/walletService");
 const TransactionRepository = require("../../repositories/txRepositories");
+const Redis = require("../../pkg/redis");
+const { redisBootStrap } = require("../../../bootstrap/redis");
 
-//Database
+//Redis
+const redis = new Redis(redisBootStrap);
 
 //Repositories
 const userRepo = new UserRepository();
@@ -19,7 +21,7 @@ const walletRepo = new WalletRepository();
 const txRepo = new TransactionRepository();
 
 //Authenticator
-const authenticator = new Authenticator();
+const authenticator = new Authenticator(redis);
 
 //Service
 const authService = new AuthService(userRepo, walletRepo);
