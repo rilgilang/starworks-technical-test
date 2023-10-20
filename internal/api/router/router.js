@@ -6,17 +6,19 @@ const AuthService = require("../../service/authService");
 const UserRepository = require("../../repositories/userRepository");
 const { signin } = require("../../middleware/auth");
 const Authenticator = require("../../middleware/auth");
+const WalletRepository = require("../../repositories/walletRepository");
 
 //Database
 
 //Repositories
 const userRepo = new UserRepository();
+const walletRepo = new WalletRepository();
 
 //Authenticator
 const authenticator = new Authenticator();
 
 //Service
-const authService = new AuthService(userRepo);
+const authService = new AuthService(userRepo, walletRepo);
 
 //Handlers
 const authHandlers = new AuthHandler(authService);

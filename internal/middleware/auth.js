@@ -40,6 +40,7 @@ class Authenticator {
         return res.status(401).json({ code: 401, message: "unauthorize" });
       }
 
+      console.log("error --> ", err);
       const jwt = require("jsonwebtoken");
       const identity = { user: user.id };
 
@@ -84,9 +85,7 @@ passport.use(
       try {
         const data = await userRepo.findOneByUsernameOrEmail(username);
         if (!data) {
-          return done("user not found", false, {
-            message: "username or password wrong",
-          });
+          return done("user not found", false);
         }
 
         const validate = await bcrypt.compare(password, data.password);
