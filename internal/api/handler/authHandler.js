@@ -54,9 +54,35 @@ class AuthHandler {
       });
 
       if (errorMessages.length > 0) {
-        return res
-          .status(400)
-          .json({ code: 400, error: errorMessages, message: "bad request" });
+        return res.status(400).json({
+          code: 400,
+          error: errorMessages.length == 1 ? errorMessages[0] : errorMessages,
+          message: "bad request",
+        });
+      }
+
+      const alphanumeric = ["username", "password", "first_name", "last_name"];
+
+      alphanumeric.map((x) => {
+        if (!validator.isAlphanumeric(req.body[x])) {
+          errorMessages.push(`${x} must be alphanumeric`);
+        }
+      });
+
+      const alphanumericSpace = ["street_address", "city", "province"];
+
+      alphanumericSpace.map((x) => {
+        if (!validator.matches(req.body[x], /^[a-z0-9 ]+$/i)) {
+          errorMessages.push(`${x} must be alphanumeric`);
+        }
+      });
+
+      if (errorMessages.length > 0) {
+        return res.status(400).json({
+          code: 400,
+          error: errorMessages.length == 1 ? errorMessages[0] : errorMessages,
+          message: "bad request",
+        });
       }
 
       if (!validator.isDate(req.body.dob)) {

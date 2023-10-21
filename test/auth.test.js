@@ -1,7 +1,5 @@
 const request = require("supertest");
 const app = require("../app");
-const { redisBootStrap } = require("../bootstrap/redis");
-const Redis = require("../internal/pkg/redis");
 
 const userUrl = "/api/v1";
 let expiredToken = "";
@@ -18,7 +16,7 @@ beforeAll(async () => {
       last_name: "oldtoken",
       dob: "2000-01-01",
       city: "ini oldtoken",
-      street_address: "jl. uwow oldtoken",
+      street_address: "jl uwow oldtoken",
       province: "oldtoken",
       telephone_number: "6289688262345",
       username: "oldtoken",
@@ -50,7 +48,7 @@ describe("Registering", () => {
         last_name: "last",
         dob: "2000-01-01",
         city: "ini city",
-        street_address: "jl. uwow sangad",
+        street_address: "jl uwow sangad",
         province: "province",
         telephone_number: "6289688262345",
         username: "username",
@@ -59,6 +57,48 @@ describe("Registering", () => {
       });
 
     expect(res.statusCode).toEqual(201);
+    expect(res.body).toBeInstanceOf(Object);
+  });
+
+  it("Register failed field not alphanumeric", async () => {
+    const res = await request(app)
+      .post(userUrl + "/register")
+      .send({
+        email: "notalphanumeric@gmail.com",
+        first_name: "first_email_duplicate",
+        last_name: "last_email_duplicate",
+        dob: "2000-01-01",
+        city: "city_email_duplicate",
+        street_address: "jl uwow sangad_email_duplicate",
+        province: "province_email_duplicate",
+        telephone_number: "6289688262345",
+        username: "notalphanumeri!@#c",
+        password: "notalphanumeric",
+        pin: 123456,
+      });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toBeInstanceOf(Object);
+  });
+
+  it("Register failed field not alphanumericspace", async () => {
+    const res = await request(app)
+      .post(userUrl + "/register")
+      .send({
+        email: "notalphanumeric@gmail.com",
+        first_name: "first_email_duplicate",
+        last_name: "last_email_duplicate",
+        dob: "2000-01-01",
+        city: "city_email_duplicate12313!@#!",
+        street_address: "jl uwow 12!@#!#@sangad_email_duplicate",
+        province: "province_email_duplicate",
+        telephone_number: "6289688262345",
+        username: "notalphanumeric",
+        password: "notalphanumeric",
+        pin: 123456,
+      });
+
+    expect(res.statusCode).toEqual(400);
     expect(res.body).toBeInstanceOf(Object);
   });
 
@@ -71,7 +111,7 @@ describe("Registering", () => {
         last_name: "last_email_duplicate",
         dob: "2000-01-01",
         city: "city_email_duplicate",
-        street_address: "jl. uwow sangad_email_duplicate",
+        street_address: "jl uwow sangad_email_duplicate",
         province: "province_email_duplicate",
         telephone_number: "6289688262345",
         username: "username_email_duplicate",
@@ -92,7 +132,7 @@ describe("Registering", () => {
         last_name: "last_email_duplicate",
         dob: "2000-01-01",
         city: "city_email_duplicate",
-        street_address: "jl. uwow sangad_email_duplicate",
+        street_address: "jl uwow sangad_email_duplicate",
         province: "province_email_duplicate",
         telephone_number: "6289688262345",
         username: "oneofbodyempty",
@@ -113,7 +153,7 @@ describe("Registering", () => {
         last_name: "dobnotvalid",
         dob: "invaliddob",
         city: "city_dobnotvalid",
-        street_address: "jl. uwow dobnotvalid",
+        street_address: "jl uwow dobnotvalid",
         province: "dobnotvalid",
         telephone_number: "6289688262345",
         username: "dobnotvalid",
@@ -134,7 +174,7 @@ describe("Registering", () => {
         last_name: "emailisnotvalid",
         dob: "2000-12-12",
         city: "emailisnotvalid",
-        street_address: "jl. uwow emailisnotvalid",
+        street_address: "jl uwow emailisnotvalid",
         province: "emailisnotvalid",
         telephone_number: "6289688262345",
         username: "emailisnotvalid",
@@ -155,7 +195,7 @@ describe("Registering", () => {
         last_name: "phonenotvalid",
         dob: "2000-12-12",
         city: "phonenotvalid",
-        street_address: "jl. uwow phonenotvalid",
+        street_address: "jl uwow phonenotvalid",
         province: "phonenotvalid",
         telephone_number: "notvalid",
         username: "phonenotvalid",
@@ -176,7 +216,7 @@ describe("Registering", () => {
         last_name: "a",
         dob: "1999-05-22",
         city: "a",
-        street_address: "jl. uwow max20validator",
+        street_address: "jl uwow max20validator",
         province: "max20validator",
         telephone_number: "6289688262345",
         username: "a",
@@ -199,7 +239,7 @@ describe("Registering", () => {
           "dTz7GyjYYZH4npJEBjQfYtXyRqCN6gXBErQy45IRbnbSrI67TtERrxdrSMP2",
         dob: "1999-05-22",
         city: "dTz7GyjYYZH4npJEBjQfYtXyRqCN6gXBErQy45IRbnbSrI67TtERrxdrSMP2",
-        street_address: "jl. uwow max20validator",
+        street_address: "jl uwow max20validator",
         province: "max20validator",
         telephone_number: "6289688262345",
         username:
@@ -264,7 +304,7 @@ describe("Registering", () => {
         last_name: "last",
         dob: "2000-01-01",
         city: "ini city",
-        street_address: "jl. uwow sangad",
+        street_address: "jl uwow sangad",
         province: "province",
         telephone_number: "6289688262345",
         username: "username",
@@ -285,7 +325,7 @@ describe("Registering", () => {
         last_name: "last",
         dob: "2000-01-01",
         city: "ini city",
-        street_address: "jl. uwow sangad",
+        street_address: "jl uwow sangad",
         province: "province",
         telephone_number: "6289688262345",
         username: "username",
@@ -306,7 +346,7 @@ describe("Registering", () => {
         last_name: "last",
         dob: "2000-01-01",
         city: "ini city",
-        street_address: "jl. uwow sangad",
+        street_address: "jl uwow sangad",
         province: "province",
         telephone_number: "6289688262345",
         username: "username",
