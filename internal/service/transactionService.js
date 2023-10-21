@@ -146,6 +146,10 @@ class TransactionService {
         "pending"
       );
 
+      if (!transactionData) {
+        throw "transaction not found";
+      }
+
       const recipient = await this.walletRepo.findWalletByAddress(
         transactionData.recipient_address
       );
@@ -198,6 +202,7 @@ class TransactionService {
         transactionId
       );
 
+      await this.redis.delete(`transaction:${transactionId}`);
       this.txRepo.commitTx(tx);
     } catch (error) {
       console.log("error --> ", error);
