@@ -107,26 +107,17 @@ class TransactionService {
   ) => {
     let attemp = await this.redis.get(`attemp:${transactionId}`);
 
-    if (attemp == 3) {
-      await this.redis.delete(`transaction:${transactionId}`);
-
-      await this.redis.delete(`attemp:${transactionId}`);
-
-      // update transaction status
-      await this.transactionRepo.updateTransactionStatus(
-        "failed",
-        transactionId
-      );
-
-      return {
-        message: "unauthorize",
-        error: "max failed pin attemp reached!",
-        code: 401,
-      };
-    }
-
     const tx = await this.txRepo.startTx();
     try {
+      const transactionData = await this.transactionRepo.findTransaction(
+        transactionId,
+        "pending"
+      );
+
+      if (!transactionData) {
+        throw "transaction not found";
+      }
+
       const redisTransaction = await this.redis.get(
         `transaction:${transactionId}`
       );
@@ -138,15 +129,6 @@ class TransactionService {
           transactionId
         );
 
-        throw "transaction not found";
-      }
-
-      const transactionData = await this.transactionRepo.findTransaction(
-        transactionId,
-        "pending"
-      );
-
-      if (!transactionData) {
         throw "transaction not found";
       }
 
@@ -180,6 +162,26 @@ class TransactionService {
           `${parseInt(attemp) + 1}`,
           redisMaxTimeTransactionInSecond
         );
+
+        const latestAttemp = await this.redis.get(`attemp:${transactionId}`);
+
+        if (parseInt(latestAttemp) == 3) {
+          await this.redis.delete(`transaction:${transactionId}`);
+
+          await this.redis.delete(`attemp:${transactionId}`);
+
+          // update transaction status
+          await this.transactionRepo.updateTransactionStatus(
+            "failed",
+            transactionId
+          );
+
+          return {
+            message: "unauthorize",
+            error: "max failed pin attemp reached!",
+            code: 401,
+          };
+        }
 
         throw "wrong pin";
       }
