@@ -1,11 +1,12 @@
 const validator = require("validator");
+const { checkIfValidSHA256 } = require("../../helper/sha256Validation");
 
 class WalletHandler {
   constructor(walletService) {
     this.walletService = walletService;
   }
 
-  getCurrentUserWallet = async (req, res) => {
+  getCurrentUserWallet = async (req, res, next) => {
     try {
       let wallet = await this.walletService.getCurrentUserWallet(req.user);
       return res.status(200).json({
@@ -18,13 +19,11 @@ class WalletHandler {
         message: "success",
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ code: 500, error: error, message: "internal server error" });
+      next(error);
     }
   };
 
-  topUpWallet = async (req, res) => {
+  topUpWallet = async (req, res, next) => {
     try {
       if (!req.body.amount || req.body.amount === "") {
         return res.status(400).json({
@@ -63,26 +62,13 @@ class WalletHandler {
         parseInt(req.body.amount)
       );
 
-      if (result != 200) {
-        return res.status(result.code).json({
-          code: result.code,
-          message: result.message,
-        });
-      }
-
       return res.status(200).json({
-        code: 200,
-        data: {
-          username: req.user.username,
-          address: wallet.data.wallet_address,
-          balance: wallet.data.balance,
-        },
-        message: "success",
+        code: result.code,
+        data: result.data,
+        message: result.message,
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ code: 500, error: error, message: "internal server error" });
+      next(error);
     }
   };
 }

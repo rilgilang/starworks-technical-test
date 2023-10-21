@@ -5,12 +5,16 @@ const AuthHandler = require("../handler/authHandler");
 const AuthService = require("../../service/authService");
 const UserRepository = require("../../repositories/userRepository");
 const Authenticator = require("../../middleware/auth");
-const WalletRepository = require("../../repositories/walletRepository");
+
 const WalletHandler = require("../handler/walletHandler");
 const WalletService = require("../../service/walletService");
-const TransactionRepository = require("../../repositories/txRepositories");
+const TxRepository = require("../../repositories/txRepositories");
 const Redis = require("../../pkg/redis");
 const { redisBootStrap } = require("../../../bootstrap/redis");
+const TransactionRepository = require("../../repositories/transactionRepository");
+const TransactionService = require("../../service/transactionService");
+const WalletRepository = require("../../repositories/walletRepository");
+const TransactionHandler = require("../handler/transactionHandler");
 
 //Redis
 const redis = new Redis(redisBootStrap);
@@ -18,23 +22,43 @@ const redis = new Redis(redisBootStrap);
 //Repositories
 const userRepo = new UserRepository();
 const walletRepo = new WalletRepository();
-const txRepo = new TransactionRepository();
+const transactionRepo = new TransactionRepository();
+const txRepo = new TxRepository();
 
 //Authenticator
 const authenticator = new Authenticator(redis);
 
 //Service
 const authService = new AuthService(userRepo, walletRepo);
-const walletService = new WalletService(walletRepo, txRepo);
+const walletService = new WalletService(
+  walletRepo,
+  transactionRepo,
+  redis,
+  txRepo
+);
+const transactionService = new TransactionService(
+  walletRepo,
+  transactionRepo,
+  redis,
+  txRepo
+);
 
 //Handlers
 const authHandlers = new AuthHandler(authService);
 const walletHandler = new WalletHandler(walletService);
+const transactionHandler = new TransactionHandler(transactionService);
 
 router.post("/login", authenticator.signin, authHandlers.loginHandler);
 router.post("/register", authHandlers.registerHandler);
 
 router.get("/wallet", authenticator.user, walletHandler.getCurrentUserWallet);
 router.post("/wallet/topup", authenticator.user, walletHandler.topUpWallet);
+
+router.post("/pay", authenticator.user, transactionHandler.payment);
+router.post(
+  "/pay/confirm",
+  authenticator.user,
+  transactionHandler.confirmPayment
+);
 
 module.exports = router;

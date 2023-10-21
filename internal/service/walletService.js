@@ -1,9 +1,11 @@
 const { walletAddressGenerator } = require("../helper/walletAddressGenerator");
 
 class WalletService {
-  constructor(walletRepo, txRepo) {
+  constructor(walletRepo, transactionRepo, redis, txRepo) {
     this.walletRepo = walletRepo;
     this.txRepo = txRepo;
+    this.transactionRepo = transactionRepo;
+    this.redis = redis;
   }
   getCurrentUserWallet = async (userInfo) => {
     const walletAddress = await walletAddressGenerator(
@@ -31,7 +33,7 @@ class WalletService {
 
       const newAmount = lastAmount.balance + amount;
 
-      await this.walletRepo.topUpWallet(newAmount, walletAddress);
+      await this.walletRepo.updateBalance(newAmount, walletAddress);
 
       this.txRepo.commitTx(tx);
     } catch (error) {

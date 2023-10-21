@@ -26,6 +26,27 @@ beforeAll(async () => {
   await new Promise((r) => setTimeout(r, 1500));
 
   await userRepo.createNewUser({
+    username: "walletTestRecipient",
+    password: "walletTestRecipient",
+    email: "walletTestRecipient@gmail.com",
+    first_name: "walletTestRecipient",
+    last_name: "walletTestRecipient",
+    dob: "1999-09-09",
+    street_address: "walletTestRecipient",
+    city: "walletTestRecipient",
+    province: "walletTestRecipient",
+    telephone_number: "6289688262345",
+  });
+
+  const walletAddressRecipient = await walletAddressGenerator(
+    "walletTest",
+    "walletTest@gmail.com"
+  );
+
+  await walletRepo.createNewWallet(walletAddressRecipient);
+
+  //=======================================
+  await userRepo.createNewUser({
     username: "walletTest",
     password: "walletTest",
     email: "walletTest@gmail.com",
@@ -160,6 +181,19 @@ describe("Topup Wallet", () => {
         "User-Agent": dummyUserAgent,
       })
       .send({});
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toBeInstanceOf(Object);
+  });
+
+  it("Topup wallet failed amount not numeric", async () => {
+    const res = await request(app)
+      .post(userUrl + "/wallet/topup")
+      .set({
+        Authorization: `Bearer ${validToken}`,
+        "User-Agent": dummyUserAgent,
+      })
+      .send({ amount: "asdasdasd" });
 
     expect(res.statusCode).toEqual(400);
     expect(res.body).toBeInstanceOf(Object);

@@ -1,4 +1,7 @@
-const { walletAddressGenerator } = require("../helper/walletAddressGenerator");
+const {
+  walletAddressGenerator,
+  pinHashGenerator,
+} = require("../helper/walletAddressGenerator");
 
 class AuthService {
   constructor(userRepo, walletRepo) {
@@ -36,7 +39,9 @@ class AuthService {
       payload.email
     );
 
-    await this.walletRepo.createNewWallet(walletAddress);
+    const pinHash = await pinHashGenerator(payload.pin);
+
+    await this.walletRepo.createNewWallet(walletAddress, pinHash);
 
     const newUser = await this.userRepo.findOneByUsername(payload.username);
 

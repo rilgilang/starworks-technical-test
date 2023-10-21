@@ -12,16 +12,17 @@ class WalletRepository {
     return data;
   };
 
-  createNewWallet = async (address) => {
+  createNewWallet = async (address, pin) => {
     const data = await wallet.create({
       wallet_address: address,
       balance: 0,
+      pin: pin,
     });
 
     return data;
   };
 
-  topUpWallet = async (amount, walletAddress) => {
+  updateBalance = async (amount, walletAddress) => {
     const data = await wallet.update(
       { balance: amount },
       { where: { wallet_address: walletAddress } }

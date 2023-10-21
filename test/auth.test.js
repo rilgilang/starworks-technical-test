@@ -7,11 +7,6 @@ const userUrl = "/api/v1";
 let expiredToken = "";
 const dummyUserAgent = "Jest-Testing";
 
-//******delete this after debugging******
-const redis = new Redis(redisBootStrap);
-let checkId = 0;
-//******delete this after debugging******
-
 beforeAll(async () => {
   await new Promise((r) => setTimeout(r, 1500));
 
@@ -28,6 +23,7 @@ beforeAll(async () => {
       telephone_number: "6289688262345",
       username: "oldtoken",
       password: "oldtoken",
+      pin: 123456,
     });
 
   const res = await request(app)
@@ -36,6 +32,7 @@ beforeAll(async () => {
     .send({
       username: "oldtoken",
       password: "oldtoken",
+      pin: 123456,
     });
 
   //old token
@@ -58,6 +55,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "username",
         password: "password",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(201);
@@ -78,6 +76,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "username_email_duplicate",
         password: "password_email_duplicate",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -98,6 +97,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "oneofbodyempty",
         password: "password_email_duplicate",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -118,6 +118,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "dobnotvalid",
         password: "dobnotvalid",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -138,6 +139,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "emailisnotvalid",
         password: "emailisnotvalid",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -158,6 +160,7 @@ describe("Registering", () => {
         telephone_number: "notvalid",
         username: "phonenotvalid",
         password: "phonenotvalid",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -178,6 +181,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "a",
         password: "max20validator",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -201,6 +205,7 @@ describe("Registering", () => {
         username:
           "dTz7GyjYYZH4npJEBjQfYtXyRqCN6gXBErQy45IRbnbSrI67TtERrxdrSMP2",
         password: "max20validator",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -221,6 +226,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "addressisnotvalid",
         password: "max20validator",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -242,6 +248,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "addressisnotvalid",
         password: "max20validator",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -262,6 +269,7 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "username",
         password: "password",
+        pin: 123456,
       });
 
     expect(res.statusCode).toEqual(400);
@@ -282,6 +290,28 @@ describe("Registering", () => {
         telephone_number: "6289688262345",
         username: "username",
         password: "password",
+        pin: 123456,
+      });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toBeInstanceOf(Object);
+  });
+
+  it("Register failed pin invalid", async () => {
+    const res = await request(app)
+      .post(userUrl + "/register")
+      .send({
+        email: "pininvalid@gmail.com",
+        first_name: "first",
+        last_name: "last",
+        dob: "2000-01-01",
+        city: "ini city",
+        street_address: "jl. uwow sangad",
+        province: "province",
+        telephone_number: "6289688262345",
+        username: "username",
+        password: "password",
+        pin: "asdasda",
       });
 
     expect(res.statusCode).toEqual(400);

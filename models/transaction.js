@@ -1,7 +1,8 @@
 "use strict";
+const uuid = require("uuid");
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class wallet extends Model {
+  class transactions extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,17 +12,18 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  wallet.init(
+  transactions.init(
     {
-      wallet_address: DataTypes.STRING,
-      balance: DataTypes.FLOAT,
-      pin: DataTypes.STRING,
+      recipient_address: DataTypes.STRING,
+      sender_address: DataTypes.STRING,
+      amount: DataTypes.FLOAT,
+      status: DataTypes.ENUM("sucess", "failed", "pending"),
     },
     {
       sequelize,
       timestamps: true, // enable createdAt and updatedAt
-      modelName: "wallet",
+      modelName: "transaction",
     }
   );
-  return wallet;
+  return transactions;
 };

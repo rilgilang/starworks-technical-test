@@ -1,6 +1,6 @@
 const { sequelize } = require("../../models");
 
-class TransactionRepository {
+class TxRepository {
   constructor() {}
   startTx = async () => {
     const tx = await sequelize.transaction();
@@ -16,4 +16,4 @@ class TransactionRepository {
   };
 }
 
-module.exports = TransactionRepository;
+module.exports = TxRepository;

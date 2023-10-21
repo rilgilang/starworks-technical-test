@@ -5,7 +5,7 @@ class AuthHandler {
     this.authService = authService;
   }
 
-  loginHandler = async (req, res) => {
+  loginHandler = async (req, res, next) => {
     try {
       return res.status(200).json({
         code: 200,
@@ -25,13 +25,11 @@ class AuthHandler {
         message: "success",
       });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ code: 500, error: error, message: "internal server error" });
+      next(error);
     }
   };
 
-  registerHandler = async (req, res) => {
+  registerHandler = async (req, res, next) => {
     try {
       const errorMessages = [];
 
@@ -46,6 +44,7 @@ class AuthHandler {
         "city",
         "province",
         "telephone_number",
+        "pin",
       ];
 
       validate.map((x) => {
@@ -80,6 +79,22 @@ class AuthHandler {
         return res.status(400).json({
           code: 400,
           error: "telephone_number must be a mobile phone number",
+          message: "bad request",
+        });
+      }
+
+      if (!validator.isNumeric(`${req.body.pin}`)) {
+        return res.status(400).json({
+          code: 400,
+          error: "pin must be a number",
+          message: "bad request",
+        });
+      }
+
+      if (`${req.body.pin}`.length != 6) {
+        return res.status(400).json({
+          code: 400,
+          error: "pin must be 6 digit",
           message: "bad request",
         });
       }
@@ -119,6 +134,7 @@ class AuthHandler {
         city: req.body.city,
         province: req.body.province,
         telephone_number: req.body.telephone_number,
+        pin: req.body.pin,
       };
 
       const result = await this.authService.register(payload);
@@ -148,11 +164,7 @@ class AuthHandler {
         message: result.message,
       });
     } catch (error) {
-      return res.status(500).json({
-        code: 500,
-        error: error,
-        message: "internal server error",
-      });
+      next(error);
     }
   };
 }

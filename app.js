@@ -31,6 +31,9 @@ app.use(
   })
 );
 
+/* Import errorHandler */
+const errorHandler = require("./internal/middleware/errorHandler");
+
 /* Enable req.body */
 app.use(express.json()); // Enable req.body JSON
 // Enable url-encoded
@@ -52,6 +55,9 @@ app.use("/api/v1", router);
 app.all("*", (req, res, next) => {
   res.status(404).json("wtf are u doing bruh!!");
 });
+
+/* User errorHandler */
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 if (process.env.NODE_ENV !== "test") {

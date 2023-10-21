@@ -5,15 +5,20 @@ const UserRepository = require("../internal/repositories/userRepository");
 const WalletRepository = require("../internal/repositories/walletRepository");
 const { redisBootStrap } = require("../bootstrap/redis");
 const Redis = require("../internal/pkg/redis");
+const TransactionRepository = require("../internal/repositories/transactionRepository");
 const userRepo = new UserRepository();
 const walletRepo = new WalletRepository();
+const transactionRepo = new TransactionRepository();
 
 beforeAll(async () => {
   const redis = new Redis(redisBootStrap);
   const keys = await redis.getKeys("session:*");
-  await redis.delete(keys);
+  if (keys.length > 0) {
+    await redis.delete(keys);
+  }
   await userRepo.destroyAll();
   await walletRepo.destroyAll();
+  await transactionRepo.destroyAll();
 });
 
 //Home routes
