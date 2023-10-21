@@ -6,6 +6,7 @@
   "scripts": {
     "test": "NODE_ENV=test jest --testTimeout=20000 --coverage --forceExit",
     "dev": "NODE_ENV=development nodemon app.js",
+    "start": "NODE_ENV=production node app",
     "sequelize": "NODE_ENV=development sequelize"
   },
   "keywords": [],
