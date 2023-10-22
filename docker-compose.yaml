@@ -1,0 +1,11 @@
+version: "3"
+services:
+  starworks:
+    build: .
+    container_name: starworks_api
+    #    network_mode: todo_list_network
+    ports:
+      - 4000:4000
+    volumes:
+      - ./:/app
+      - /app/node_modules
