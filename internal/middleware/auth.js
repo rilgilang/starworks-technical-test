@@ -6,6 +6,7 @@ const ExtractJWT = require("passport-jwt").ExtractJwt;
 const validator = require("validator");
 const UserRepository = require("../repositories/userRepository");
 const DeviceDetector = require("node-device-detector");
+const { walletAddressGenerator } = require("../helper/walletAddressGenerator");
 
 require("dotenv").config({
   path: `.env.${process.env.NODE_ENV}`,
@@ -18,9 +19,12 @@ const detector = new DeviceDetector({
 });
 
 class Authenticator {
-  constructor(redis) {
+  constructor(redis, userLogsRepo, walletRepo) {
     this.redis = redis;
+    this.userLogsRepo = userLogsRepo;
+    this.walletRepo = walletRepo;
   }
+
   signin = async (req, res, next) => {
     const errorMessages = [];
     const validate = ["username", "password"];
@@ -50,23 +54,84 @@ class Authenticator {
     }
 
     passport.authenticate("signin", { session: false }, async (err, user) => {
-      if (err == "user not found") {
+      if (err.error == "user not found") {
         return res
           .status(401)
           .json({ code: 401, error: err.message, message: "unauthorize" });
       }
-      if (err == "password wrong") {
+
+      const userAgent = req.get("User-Agent");
+      const device = detector.detect(userAgent);
+
+      user = {
+        id: user === undefined ? err.user.id : user.id,
+        username: user === undefined ? err.user.username : user.username,
+        email: user === undefined ? err.user.email : user.email,
+        createdAt: user === undefined ? err.user.createdAt : user.createdAt,
+      };
+
+      const userLogs = await this.userLogsRepo.findOneUserLogs(
+        user.id,
+        user.username,
+        `${device.client.name}/${device.client.version}`
+      );
+
+      const walletAddress = await walletAddressGenerator(
+        user.username,
+        user.email
+      );
+
+      if (err.error == "password wrong") {
+        //insert to logs
+        if (userLogs) {
+          this.updateUserLogs(
+            walletAddress,
+            userLogs.login_succes,
+            userLogs.login_failed + 1,
+            user.id,
+            `${device.client.name}/${device.client.version}`,
+            false
+          );
+        } else {
+          this.createNewUserLogs(
+            user,
+            walletAddress,
+            0,
+            1,
+            `${device.client.name}/${device.client.version}`,
+            false
+          );
+        }
+
         return res.status(401).json({ code: 401, message: "unauthorize" });
       }
-      const userAgent = req.get("User-Agent");
+
+      if (userLogs) {
+        this.updateUserLogs(
+          userWallet.balance,
+          userLogs.login_succes + 1,
+          userLogs.login_failed,
+          user.id,
+          `${device.client.name}/${device.client.version}`,
+          true
+        );
+      } else {
+        this.createNewUserLogs(
+          user,
+          userWallet.balance,
+          1,
+          0,
+          `${device.client.name}/${device.client.version}`,
+          true
+        );
+      }
+
       const jwt = require("jsonwebtoken");
       const identity = { user: user.id };
 
       const token = await jwt.sign(identity, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE,
       });
-
-      const device = detector.detect(userAgent);
 
       const userSession = await this.redis.get(
         `session:${user.id}:(${device.os.name}:${device.os.version})`
@@ -81,7 +146,7 @@ class Authenticator {
       await this.redis.set(
         `session:${user.id}:(${device.os.name}:${device.os.version})`,
         token,
-        5 * 60
+        5 * 60 //TODO set dynamicaly with env
       );
 
       req.user = user;
@@ -115,6 +180,56 @@ class Authenticator {
       next();
     })(req, res, next);
   };
+
+  createNewUserLogs = async (
+    user,
+    walletAddress,
+    loginSuccess,
+    loginFailed,
+    browserType,
+    status
+  ) => {
+    //if user first time login with new browser
+    await this.userLogsRepo.insertLogs({
+      user_id: user.id,
+      wallet_address: walletAddress,
+      registered_at: user.createdAt,
+      browser_type: browserType,
+      login_succes: loginSuccess,
+      login_failed: loginFailed,
+      last_seen: Date.now(),
+      last_attemp: status ? "login_succes" : "login_failed",
+    });
+  };
+
+  updateUserLogs = async (
+    walletAddress,
+    loginSuccess,
+    loginFailed,
+    userId,
+    browserType,
+    status
+  ) => {
+    let payload;
+    if (status === true) {
+      payload = {
+        wallet_address: walletAddress,
+        login_succes: loginSuccess,
+        login_failed: loginFailed,
+        last_attemp: "login_succes",
+        last_seen: Date.now(),
+      };
+    } else {
+      payload = {
+        wallet_address: walletAddress,
+        login_succes: loginSuccess,
+        login_failed: loginFailed,
+        last_attemp: "login_failed",
+      };
+    }
+    //update user logs
+    await this.userLogsRepo.updateUserLogs(payload, userId, browserType);
+  };
 }
 
 module.exports = Authenticator;
@@ -134,14 +249,14 @@ passport.use(
       try {
         const data = await userRepo.findOneByUsernameOrEmail(username);
         if (!data) {
-          return done("user not found", false);
+          return done({ error: "user not found", user: null }, false);
         }
 
         const validate = await bcrypt.compare(password, data.password);
         if (!validate) {
-          return done("password wrong", false);
+          return done({ error: "password wrong", user: data }, false);
         }
-        return done(null, data, { message: "Login success!" });
+        return done(null, data);
       } catch (e) {
         return done("user cant login!", false);
       }
