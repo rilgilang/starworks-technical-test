@@ -409,10 +409,23 @@ describe("Login", () => {
       .set({ "User-Agent": dummyUserAgent })
       .send({
         username: "username",
-        password: "wrong password",
+        password: "wrongpassword123123",
       });
 
     expect(res.statusCode).toEqual(401);
+    expect(res.body).toBeInstanceOf(Object);
+  });
+
+  it("Login failed username cant contain special char", async () => {
+    const res = await request(app)
+      .post(userUrl + "/login")
+      .set({ "User-Agent": dummyUserAgent })
+      .send({
+        username: "use!@#123rname",
+        password: "wrong password",
+      });
+
+    expect(res.statusCode).toEqual(400);
     expect(res.body).toBeInstanceOf(Object);
   });
 

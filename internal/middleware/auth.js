@@ -32,6 +32,16 @@ class Authenticator {
       return res.status(400).json({ message: errorMessages });
     }
 
+    if (!validator.matches(req.body.username, /^[a-z0-9_\.]+$/)) {
+      errorMessages.push(`username can'contain special char`);
+    }
+
+    if (errorMessages.length > 0) {
+      return res.status(400).json({
+        message: errorMessages.length == 1 ? errorMessages[0] : errorMessages,
+      });
+    }
+
     passport.authenticate("signin", { session: false }, async (err, user) => {
       if (err == "user not found") {
         return res
