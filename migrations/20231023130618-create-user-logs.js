@@ -15,9 +15,6 @@ module.exports = {
       wallet_address: {
         type: Sequelize.STRING,
       },
-      registered_at: {
-        type: Sequelize.DATE,
-      },
       browser_type: {
         type: Sequelize.STRING,
       },

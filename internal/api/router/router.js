@@ -16,6 +16,7 @@ const TransactionService = require("../../service/transactionService");
 const WalletRepository = require("../../repositories/walletRepository");
 const TransactionHandler = require("../handler/transactionHandler");
 const UserLogsRepository = require("../../repositories/userLogRepository");
+const UserLogsService = require("../../service/userLogsService");
 
 //Redis
 const redis = new Redis(redisBootStrap);
@@ -27,9 +28,6 @@ const transactionRepo = new TransactionRepository();
 const txRepo = new TxRepository();
 const userLogsRepo = new UserLogsRepository();
 
-//Authenticator
-const authenticator = new Authenticator(redis, userLogsRepo, walletRepo);
-
 //Service
 const authService = new AuthService(userRepo, walletRepo);
 const walletService = new WalletService(
@@ -38,12 +36,17 @@ const walletService = new WalletService(
   redis,
   txRepo
 );
+const userLogsService = new UserLogsService(walletRepo, userLogsRepo);
+
 const transactionService = new TransactionService(
   walletRepo,
   transactionRepo,
   redis,
   txRepo
 );
+
+//Authenticator
+const authenticator = new Authenticator(redis, userLogsService, walletRepo);
 
 //Handlers
 const authHandlers = new AuthHandler(authService);

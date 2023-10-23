@@ -15,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
     {
       user_id: DataTypes.STRING,
       wallet_address: DataTypes.STRING,
-      registered_at: DataTypes.DATE,
       browser_type: DataTypes.STRING,
       login_succes: DataTypes.INTEGER,
       login_failed: DataTypes.INTEGER,
