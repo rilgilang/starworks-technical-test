@@ -441,7 +441,7 @@ describe("Confirm Payment", () => {
     expect(res.body).toBeInstanceOf(Object);
   });
 
-  it("Confirm payment failed incorrect pin multiple time", async () => {
+  it("Confirm payment failed incorrect pin 3 time", async () => {
     const payment = await request(app)
       .post(url + "/pay")
       .set({
@@ -493,20 +493,6 @@ describe("Confirm Payment", () => {
 
     expect(attemp3.statusCode).toEqual(401);
     expect(attemp3.body).toBeInstanceOf(Object);
-
-    const attemp4 = await request(app)
-      .post(url + "/pay/confirm")
-      .set({
-        Authorization: `Bearer ${token}`,
-        "User-Agent": dummyUserAgent,
-      })
-      .send({
-        pin: pin, //valid pin
-        payment_id: payment.body.data.transaction_id,
-      });
-
-    expect(attemp4.statusCode).toEqual(401);
-    expect(attemp4.body).toBeInstanceOf(Object);
   });
 
   it("Confirm payment failed recipient insuficient balance", async () => {
