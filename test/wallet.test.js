@@ -8,11 +8,20 @@ const {
 } = require("../internal/helper/walletAddressGenerator");
 const { redisBootStrap } = require("../bootstrap/redis");
 const Redis = require("../internal/pkg/redis");
+const DeviceDetector = require("node-device-detector");
+
+const detector = new DeviceDetector({
+  clientIndexes: true,
+  deviceIndexes: true,
+  deviceAliasCode: false,
+});
 
 const userRepo = new UserRepository();
 const walletRepo = new WalletRepository();
 const userUrl = "/api/v1";
-const dummyUserAgent = "Jest-Testing";
+const dummyUserAgent =
+  "Mozilla/5.0 (Linux; Android 5.0; NX505J Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.78 Mobile Safari/537.36";
+const device = detector.detect(dummyUserAgent);
 let validToken = "";
 let invalidToken = "";
 
@@ -70,11 +79,19 @@ beforeAll(async () => {
 
   //valid user
   validToken = jwt.sign({ user: user.id }, process.env.JWT_SECRET);
-  await redis.set(`session:${user.id}:${dummyUserAgent}`, validToken, 5 * 60);
+  await redis.set(
+    `session:${user.id}:(${device.os.name}:${device.os.version})`,
+    validToken,
+    5 * 60
+  );
 
   //invalid user
   invalidToken = jwt.sign({ user: 99 }, process.env.JWT_SECRET);
-  await redis.set(`session:${99}:${dummyUserAgent}`, invalidToken, 5 * 60);
+  await redis.set(
+    `session:${99}:(${device.os.name}:${device.os.version})`,
+    invalidToken,
+    5 * 60
+  );
 });
 
 describe("Wallet", () => {
@@ -86,6 +103,7 @@ describe("Wallet", () => {
         "User-Agent": dummyUserAgent,
       });
 
+    console.log("response --> ", res.body);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toBeInstanceOf(Object);
     expect(res.body.data.balance).toEqual(0);

@@ -9,11 +9,20 @@ const {
 } = require("../internal/helper/walletAddressGenerator");
 const { redisBootStrap } = require("../bootstrap/redis");
 const Redis = require("../internal/pkg/redis");
+const DeviceDetector = require("node-device-detector");
+
+const detector = new DeviceDetector({
+  clientIndexes: true,
+  deviceIndexes: true,
+  deviceAliasCode: false,
+});
 
 const userRepo = new UserRepository();
 const walletRepo = new WalletRepository();
 const url = "/api/v1";
-const dummyUserAgent = "Jest-Testing";
+const dummyUserAgent =
+  "Mozilla/5.0 (Linux; Android 5.0; NX505J Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.78 Mobile Safari/537.36";
+const device = detector.detect(dummyUserAgent);
 let token = "";
 let walletAddressRecipient = "";
 let walletAddressSender = "";
@@ -76,7 +85,11 @@ beforeAll(async () => {
   const user = await userRepo.findOneByUsername("walletTestSender");
 
   token = jwt.sign({ user: user.id }, process.env.JWT_SECRET);
-  await redis.set(`session:${user.id}:${dummyUserAgent}`, token, 5 * 60);
+  await redis.set(
+    `session:${user.id}:(${device.os.name}:${device.os.version})`,
+    token,
+    5 * 60
+  );
 });
 
 describe("Create Payment", () => {

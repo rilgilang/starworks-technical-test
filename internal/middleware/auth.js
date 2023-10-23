@@ -5,9 +5,16 @@ const JWTstrategy = require("passport-jwt").Strategy;
 const ExtractJWT = require("passport-jwt").ExtractJwt;
 const validator = require("validator");
 const UserRepository = require("../repositories/userRepository");
+const DeviceDetector = require("node-device-detector");
 
 require("dotenv").config({
   path: `.env.${process.env.NODE_ENV}`,
+});
+
+const detector = new DeviceDetector({
+  clientIndexes: true,
+  deviceIndexes: true,
+  deviceAliasCode: false,
 });
 
 class Authenticator {
@@ -59,15 +66,23 @@ class Authenticator {
         expiresIn: process.env.JWT_EXPIRE,
       });
 
+      const device = detector.detect(userAgent);
+
       const userSession = await this.redis.get(
-        `session:${user.id}:${userAgent}`
+        `session:${user.id}:(${device.os.name}:${device.os.version})`
       );
 
       if (userSession) {
-        await this.redis.delete(`session:${user.id}:${userAgent}`);
+        await this.redis.delete(
+          `session:${user.id}:(${device.os.name}:${device.os.version})`
+        );
       }
 
-      await this.redis.set(`session:${user.id}:${userAgent}`, token, 5 * 60);
+      await this.redis.set(
+        `session:${user.id}:(${device.os.name}:${device.os.version})`,
+        token,
+        5 * 60
+      );
 
       req.user = user;
       req.token = token;
@@ -78,19 +93,22 @@ class Authenticator {
   user = (req, res, next) => {
     passport.authorize("user", { session: false }, async (err, user, info) => {
       if (err) {
-        return res.status(403).json({ message: err.message, statusCode: 403 });
+        return res.status(403).json({ code: 403, message: err.message });
       }
       if (!user) {
-        return res.status(403).json({ message: info.message, statusCode: 403 });
+        return res.status(403).json({ code: 403, message: info.message });
       }
 
       const userAgent = req.get("User-Agent");
+
+      const device = detector.detect(userAgent);
+
       const userSession = await this.redis.get(
-        `session:${user.id}:${userAgent}`
+        `session:${user.id}:(${device.os.name}:${device.os.version})`
       );
 
       if (userSession !== req.headers.authorization.split(" ")[1]) {
-        return res.status(403).json({ message: "forbidden", statusCode: 403 });
+        return res.status(403).json({ code: 403, message: "forbidden" });
       }
 
       req.user = user;

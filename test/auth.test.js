@@ -3,7 +3,8 @@ const app = require("../app");
 
 const userUrl = "/api/v1";
 let expiredToken = "";
-const dummyUserAgent = "Jest-Testing";
+const dummyUserAgent =
+  "Mozilla/5.0 (Linux; Android 5.0; NX505J Build/KVT49L) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.78 Mobile Safari/537.36";
 
 beforeAll(async () => {
   await new Promise((r) => setTimeout(r, 1500));
